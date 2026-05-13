@@ -4,32 +4,28 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\User;
+use App\Models\Usuario;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
     public function registro(Request $request)
     {
-        // 1. Validación
         $request->validate([
             'nombre'   => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email', // Cambiado a 'users' si esa es tu tabla
+            'email'    => 'required|email|unique:usuarios,email',
             'password' => 'required|min:6',
             'telefono' => 'required|string|max:20'
         ]);
 
-        // 2. Creación del usuario
-        // Nota: Asegúrate de que en tu base de datos la columna se llame 'name' o 'nombre'
-        $usuario = User::create([
-            'name'     => $request->nombre, 
+        $usuario = Usuario::create([
+            'nombre'   => $request->nombre,
             'email'    => $request->email,
-            'password' => Hash::make($request->password), // Hash::make es más seguro/estándar que bcrypt
+            'password' => Hash::make($request->password),
             'telefono' => $request->telefono,
-            'rol'      => 'usuario' // Si tienes esta columna en tu tabla
+            'rol'      => 'usuario'
         ]);
 
-        // 3. Generar Token
         $token = $usuario->createToken('api-token')->plainTextToken;
 
         return response()->json([
@@ -46,7 +42,7 @@ class AuthController extends Controller
             'password' => 'required'
         ]);
 
-        $usuario = User::where('email', $request->email)->first();
+        $usuario = Usuario::where('email', $request->email)->first();
 
         if (!$usuario || !Hash::check($request->password, $usuario->password)) {
             return response()->json([
@@ -65,7 +61,6 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        // Revoca el token que se está usando
         $request->user()->currentAccessToken()->delete();
 
         return response()->json([
