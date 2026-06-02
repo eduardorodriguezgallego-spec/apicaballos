@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Models\Usuario;
 use App\Models\Caballo;
 use App\Models\Reserva;
 use App\Models\Pago;
@@ -22,7 +22,7 @@ class AdminController extends Controller
     {
         return response()->json([
 
-            'total_usuarios' => User::count(),
+            'total_usuarios' => Usuario::count(),
 
             'total_caballos' => Caballo::count(),
 
@@ -53,7 +53,7 @@ class AdminController extends Controller
         return response()->json([
 
             'usuarios' => [
-                'total' => User::count(),
+                'total' => Usuario::count(),
             ],
 
             'caballos' => [
@@ -85,7 +85,7 @@ class AdminController extends Controller
 
     public function usuarios()
     {
-        $usuarios = User::orderBy('created_at', 'desc')->get();
+        $usuarios = Usuario::orderBy('created_at', 'desc')->get();
 
         return response()->json($usuarios);
     }

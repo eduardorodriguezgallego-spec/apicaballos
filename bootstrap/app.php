@@ -18,6 +18,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
         ]);
 
+        $middleware->redirectGuestsTo(fn ($request) => abort(401));
+
     })
 
     ->withExceptions(function (Exceptions $exceptions) {
