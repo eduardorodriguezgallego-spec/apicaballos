@@ -55,11 +55,34 @@ footer{text-align:center;padding:25px;color:#6b3f1d}
 <section id="loginCard" class="card">
 <h2>Iniciar sesión</h2>
 <div id="loginMsg"></div>
+
 <label>Email</label>
 <input id="email" type="email" >
+
 <label>Contraseña</label>
 <input id="password" type="password" >
+
 <button type="button" onclick="login()">Entrar</button>
+
+<hr>
+
+<h2>Crear cuenta</h2>
+<p>Regístrate para poder hacer reservas desde la web.</p>
+<div id="registroMsg"></div>
+
+<label>Nombre</label>
+<input id="reg_nombre" type="text">
+
+<label>Email</label>
+<input id="reg_email" type="email">
+
+<label>Teléfono</label>
+<input id="reg_telefono" type="text">
+
+<label>Contraseña</label>
+<input id="reg_password" type="password">
+
+<button type="button" class="btn-green" onclick="registrar()">Registrarme</button>
 </section>
 
 <section id="app" class="hidden">
@@ -277,6 +300,67 @@ async function login(){
 
     }catch(e){
         mensaje("loginMsg","Error conectando con la API: " + e.message,"err");
+    }
+}
+
+async function registrar(){
+    limpiar("registroMsg");
+
+    const nombre = document.getElementById("reg_nombre").value.trim();
+    const email = document.getElementById("reg_email").value.trim();
+    const telefono = document.getElementById("reg_telefono").value.trim();
+    const password = document.getElementById("reg_password").value;
+
+    if(!nombre || !email || !telefono || !password){
+        mensaje("registroMsg","Completa todos los campos","err");
+        return;
+    }
+
+    if(password.length < 8){
+        mensaje("registroMsg","La contraseña debe tener al menos 8 caracteres","err");
+        return;
+    }
+
+    try{
+        const res = await fetch("/api/registro",{
+            method:"POST",
+            headers:{
+                "Accept":"application/json",
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify({
+                nombre:nombre,
+                email:email,
+                telefono:telefono,
+                password:password
+            })
+        });
+
+        const text = await res.text();
+        let data;
+        try{ data = text ? JSON.parse(text) : {}; }
+        catch(e){ data = text; }
+
+        if(!res.ok){
+            if(data.errors){
+                const errores = Object.values(data.errors).flat().join("<br>");
+                mensaje("registroMsg", errores, "err");
+            }else{
+                mensaje("registroMsg", data.mensaje || data.message || "No se pudo registrar el usuario", "err");
+            }
+            return;
+        }
+
+        token = data.token;
+        usuario = data.usuario;
+        localStorage.setItem("token", token);
+        localStorage.setItem("usuario", JSON.stringify(usuario));
+
+        mensaje("registroMsg","Usuario registrado correctamente. Entrando...","ok");
+        iniciarApp();
+
+    }catch(e){
+        mensaje("registroMsg","Error conectando con la API: " + e.message,"err");
     }
 }
 
@@ -501,7 +585,7 @@ async function cargarReservas(){
                 <h3>Reserva #${r.id}</h3>
                 <p><strong>Fecha:</strong> ${fechaES(r.fecha)}</p>
                 <p><strong>Hora:</strong> ${r.hora}</p>
-                <p><strong>Caballo ID:</strong> ${r.caballo_id}</p>
+                <p><strong>Caballo:</strong> ${r.caballo ? r.caballo.nombre : r.caballo_id}</p>
                 <p><strong>Estado:</strong> ${r.estado || "pendiente"}</p>
                 <p><strong>Pago:</strong> ${r.estado_pago || "pendiente"}</p>
                 <p>${r.comentarios || ""}</p>
@@ -650,8 +734,8 @@ async function cargarAdminReservas(){
             cont.innerHTML += `
             <div class="item">
                 <h3>Reserva #${r.id}</h3>
-                <p><strong>Usuario:</strong> ${r.usuario_id}</p>
-                <p><strong>Caballo:</strong> ${r.caballo_id}</p>
+                <p><strong>Usuario:</strong> ${r.usuario ? r.usuario.nombre : r.usuario_id}</p>
+                <p><strong>Caballo:</strong> ${r.caballo ? r.caballo.nombre : r.caballo_id}</p>
                 <p><strong>Fecha:</strong> ${fechaES(r.fecha)} ${r.hora}</p>
                 <p><strong>Estado:</strong> ${r.estado}</p>
                 <button type="button" class="btn-green" onclick="cambiarEstado(${r.id},'confirmada')">Confirmar</button>
