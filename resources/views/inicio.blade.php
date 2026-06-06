@@ -102,7 +102,7 @@ footer{text-align:center;padding:25px;color:#6b3f1d}
 <button type="button" onclick="showSection('caballos')">🐎 Caballos</button>
 <button type="button" onclick="showSection('reservas')">📅 Reservas</button>
 <button type="button" onclick="showSection('pagos')">💳 Pagos</button>
-<button type="button" onclick="showSection('admin')">⚙️ Admin</button>
+<button type="button" class="admin-only" onclick="showSection('admin')">⚙️ Admin</button>
 <a class="btn btn-green" href="/downloads/caballos-app.apk">📱 APK</a>
 </nav>
 
@@ -118,7 +118,7 @@ footer{text-align:center;padding:25px;color:#6b3f1d}
 <section id="caballos" class="section card">
 <h2>Gestión de caballos</h2>
 
-<h3>Alta / modificación de caballo</h3>
+<div class="admin-only"><h3>Alta / modificación de caballo</h3>
 <div id="caballoMsg"></div>
 
 <input id="edit_caballo_id" type="hidden">
@@ -147,6 +147,8 @@ footer{text-align:center;padding:25px;color:#6b3f1d}
 
 <button type="button" class="btn-green" onclick="guardarCaballo()">Guardar caballo</button>
 <button type="button" onclick="limpiarCaballo()">Nuevo caballo</button>
+
+</div>
 
 <hr>
 
@@ -220,7 +222,7 @@ footer{text-align:center;padding:25px;color:#6b3f1d}
 <div id="listaPagos" class="grid"></div>
 </section>
 
-<section id="admin" class="section card">
+<section id="admin" class="section card admin-only">
 <h2>Administración</h2>
 <p>Disponible para usuario administrador.</p>
 
@@ -266,9 +268,24 @@ function iniciarApp(){
     document.getElementById("app").classList.remove("hidden");
     document.getElementById("userInfo").innerHTML =
         `<strong>${usuario.nombre}</strong> · ${usuario.email} · <span class="badge">${usuario.rol}</span>`;
+
+    aplicarPermisos();
+
     cargarCaballos();
     cargarReservas();
     cargarPagos();
+}
+
+function aplicarPermisos(){
+    const esAdmin = usuario && usuario.rol === "admin";
+
+    document.querySelectorAll(".admin-only").forEach(el => {
+        el.style.display = esAdmin ? "" : "none";
+    });
+
+    if(!esAdmin && document.getElementById("admin").classList.contains("active")){
+        showSection("inicio");
+    }
 }
 
 if(token && usuario){ iniciarApp(); }
@@ -481,8 +498,8 @@ async function cargarCaballos(){
                 <p><strong>Nacimiento:</strong> ${fechaES(c.fecha_nacimiento) || "-"}</p>
                 <p><strong>Estado:</strong> ${c.enfermo ? "Enfermo" : "Disponible"}</p>
                 <p>${c.observaciones || ""}</p>
-                <button type="button" onclick="editarCaballoPorId(${c.id})">Editar</button>
-                <button type="button" class="btn-red" onclick="eliminarCaballo(${c.id})">Eliminar</button>
+                <button type="button" class="admin-only" onclick="editarCaballoPorId(${c.id})">Editar</button>
+                <button type="button" class="btn-red admin-only" onclick="eliminarCaballo(${c.id})">Eliminar</button>
             </div>`;
         });
 
